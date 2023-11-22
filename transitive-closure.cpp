@@ -1,42 +1,26 @@
 #include <iostream>
-#include <vector>
-#include <queue>
 #include <thread>
-#include <shared_mutex>
-#include <mutex>
 #include <chrono>
 #include <random>
-#include <vector>
 
-#define MAX_VERTICES 2500
+#define MAX_VERTICES 1500
 
-#include "parallel-bfs.h"
 #include "parallel-floyd.h"
 #include "ord-floyd.h"
 
-auto useParallelBFS(bool closure[MAX_VERTICES][MAX_VERTICES], int vertices, int threadCount) {
-    bool newClosure[vertices][vertices];
-    for (int i = 0; i < vertices; i++) {
-        for (int j = 0; j < vertices; j++) {
-            newClosure[i][j] = closure[i][j];
-        }
-    }
+void useOrdinaryFloyd(const bool closure[MAX_VERTICES][MAX_VERTICES], const int vertices) {
     auto start = std::chrono::high_resolution_clock::now();
-    ParallelBFS::computeTransitiveClosureBFS(newClosure, vertices, threadCount);
+    bool result[MAX_VERTICES][MAX_VERTICES];
+    OrdFloyd::computeTransitiveClosure(std::ref(closure), std::ref(result), vertices);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << duration << " ms (parallel bfs), threads: " << threadCount << '\n';
+    std::cout << duration << " ms (ordinary floyd)" << '\n';
 }
 
-void useParallelFloyd(bool closure[MAX_VERTICES][MAX_VERTICES], int vertices, int threadCount) {
-    bool newClosure[vertices][vertices];
-    for (int i = 0; i < vertices; i++) {
-        for (int j = 0; j < vertices; j++) {
-            newClosure[i][j] = closure[i][j];
-        }
-    }
+void useParallelFloyd(const bool closure[MAX_VERTICES][MAX_VERTICES], const int vertices, int threadCount) {
     auto start = std::chrono::high_resolution_clock::now();
-    ParallelFloyd::computeTransitiveClosure(newClosure, vertices, threadCount);
+    bool result[2][MAX_VERTICES][MAX_VERTICES];
+    ParallelFloyd::computeTransitiveClosure(std::ref(closure), std::ref(result), vertices, threadCount);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << duration << " ms (parallel floyd) threads: " << threadCount << '\n';
@@ -65,8 +49,8 @@ int main() {
     }
 
     int threadCount = 8;
+    useOrdinaryFloyd(closure, vertices);
     useParallelFloyd(closure, vertices, threadCount);
-    useParallelBFS(closure, vertices, threadCount);
 
     return 0;
 }
