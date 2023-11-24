@@ -8,7 +8,7 @@ namespace OrdFloyd {
         for (int k = 0; k < vertices; k++) {
             for (int i = 0; i < vertices; i++) {
                 for (int j = 0; j < vertices; j++) {
-                    result[i][j] = result[i][j] || closure[i][k] && closure[k][j];
+                    result[i][j] = result[i][j] || result[i][k] && result[k][j];
                 }
             }
         }
